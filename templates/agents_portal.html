@@ -30,6 +30,7 @@
               <table class="table table-bordered">
                 <thead>
                   <tr>
+                    <th>ID</th>
                     <th>Message</th>
                     <th>Action</th>
                   </tr>
@@ -37,7 +38,10 @@
                 <tbody>
                   {% for msg in messages %}
                   <tr class="{{ 'table-danger' if not msg.replied else '' }}">
+                    <td>{{ msg.id }}</td>
+                    <!-- Displaying the User ID -->
                     <td>{{ msg.message }}</td>
+                    <!-- Displaying the Message Body -->
                     <td>
                       <form action="/reply" method="post">
                         <input

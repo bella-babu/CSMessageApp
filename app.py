@@ -3,13 +3,14 @@ from flask import Flask, request, jsonify, render_template, flash, redirect, url
 import sqlite3
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key_here'
 
 # Initialize DB
 def init_db():
     with sqlite3.connect('messages.db') as conn:
         c = conn.cursor()
         c.execute('''CREATE TABLE IF NOT EXISTS customer_messages
-                     (id INTEGER PRIMARY KEY, message TEXT, replied BOOLEAN DEFAULT FALSE,timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)''')
+                     (id INTEGER PRIMARY KEY, message TEXT, replied BOOLEAN DEFAULT FALSE)''')
         c.execute('''CREATE TABLE IF NOT EXISTS replies
                      (id INTEGER PRIMARY KEY, message_id INTEGER, reply TEXT)''')
 
@@ -32,8 +33,8 @@ def agent_portal():
     with sqlite3.connect('messages.db') as conn:
         c = conn.cursor()
         c.row_factory = sqlite3.Row
-        messages = c.execute('SELECT * FROM customer_messages ORDER BY timestamp DESC').fetchall()
-    return render_template("agent_portal.html", messages=messages)
+        messages = c.execute('SELECT * FROM customer_messages').fetchall()
+    return render_template("agents_portal.html", messages=messages)
 
 @app.route('/reply', methods=['POST'])
 def reply():
