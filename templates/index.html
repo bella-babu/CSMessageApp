@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Customer Message</title>
+  </head>
+  <body>
+    <!-- Flash messages display -->
+    {% with messages = get_flashed_messages() %} {% if messages %}
+    <ul>
+      {% for message in messages %}
+      <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %} {% endwith %}
+
+    <!-- Customer messaging form -->
+    <form action="/message" method="post">
+      <textarea name="message" required></textarea>
+      <input type="submit" value="Send" />
+    </form>
+  </body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Agent Portal</title>
+    <style>
+      /* Styling for the highlighted unreplied messages */
+      .unreplied {
+        background-color: #ffdddd;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Flash messages display -->
+    {% with messages = get_flashed_messages() %} {% if messages %}
+    <ul>
+      {% for message in messages %}
+      <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %} {% endwith %}
+
+    <!-- Messages and replies display -->
+    <table>
+      <tr>
+        <th>Message</th>
+        <th>Action</th>
+      </tr>
+      {% for msg in messages %}
+      <tr class="{{ 'unreplied' if not msg.replied else '' }}">
+        <td>{{ msg.message }}</td>
+        <td>
+          <form action="/reply" method="post">
+            <input type="hidden" name="message_id" value="{{ msg.id }}" />
+            <textarea name="reply"></textarea>
+            <input type="submit" value="Reply" />
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </body>
+</html>
