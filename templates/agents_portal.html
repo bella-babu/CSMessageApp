@@ -2,41 +2,68 @@
 <html>
   <head>
     <title>Agent Portal</title>
-    <style>
-      /* Styling for the highlighted unreplied messages */
-      .unreplied {
-        background-color: #ffdddd;
-      }
-    </style>
+    <link
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
   </head>
-  <body>
-    <!-- Flash messages display -->
-    {% with messages = get_flashed_messages() %} {% if messages %}
-    <ul>
-      {% for message in messages %}
-      <li>{{ message }}</li>
+  <body class="bg-light">
+    <!-- Flash messages here -->
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %}
+    <div class="container mt-3">
+      {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
       {% endfor %}
-    </ul>
+    </div>
     {% endif %} {% endwith %}
 
-    <!-- Messages and replies display -->
-    <table>
-      <tr>
-        <th>Message</th>
-        <th>Action</th>
-      </tr>
-      {% for msg in messages %}
-      <tr class="{{ 'unreplied' if not msg.replied else '' }}">
-        <td>{{ msg.message }}</td>
-        <td>
-          <form action="/reply" method="post">
-            <input type="hidden" name="message_id" value="{{ msg.id }}" />
-            <textarea name="reply"></textarea>
-            <input type="submit" value="Reply" />
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </table>
+    <div class="container mt-5">
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header">Customer Messages</div>
+            <div class="card-body">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Message</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for msg in messages %}
+                  <tr class="{{ 'table-danger' if not msg.replied else '' }}">
+                    <td>{{ msg.message }}</td>
+                    <td>
+                      <form action="/reply" method="post">
+                        <input
+                          type="hidden"
+                          name="message_id"
+                          value="{{ msg.id }}"
+                        />
+                        <textarea
+                          class="form-control mb-2"
+                          name="reply"
+                          rows="2"
+                          placeholder="Your reply"
+                        ></textarea>
+                        <button type="submit" class="btn btn-sm btn-primary">
+                          Reply
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
