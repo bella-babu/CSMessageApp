@@ -7,9 +7,7 @@ def setup_database():
         # Create the table with an ID and message column
         c.execute('''
         CREATE TABLE IF NOT EXISTS customer_messages 
-            (id INTEGER PRIMARY KEY, 
-             message TEXT, 
-             replied INTEGER DEFAULT 0)
+            (id INTEGER PRIMARY KEY,timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, message TEXT, replied BOOLEAN DEFAULT FALSE)
         ''')
 
 def insert_csv_to_db():
@@ -21,13 +19,14 @@ def insert_csv_to_db():
             
             for row in csvFile:
                 user_id = row[0]       # User ID column
+                time_stamp=row[1]
                 message_body = row[2]  # Message Body column
 
                 # Insert only if the user ID doesn't already exist in the table for simplicity
                 # (This avoids repeated insertion of messages from the same user)
                 c.execute('SELECT id FROM customer_messages WHERE id = ?', (user_id,))
                 if not c.fetchone():
-                    c.execute('INSERT INTO customer_messages (id, message) VALUES (?, ?)', (user_id, message_body))
+                    c.execute('INSERT INTO customer_messages (id,timestamp,message) VALUES (?, ?,?)', (user_id,time_stamp,message_body))
 
 if __name__ == "__main__":
     setup_database()

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Customer Message</title>
+    <title>Agent Login</title>
     <link
       href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
       rel="stylesheet"
@@ -12,17 +12,6 @@
   </head>
 
   <body class="bg-light">
-    <!-- Navbar for agent login -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="/">CSMessageApp</a>
-      <div class="collapse navbar-collapse">
-        <ul class="navbar-nav ml-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="/login">Agent Login</a>
-          </li>
-        </ul>
-      </div>
-    </nav>
     <!-- Flash messages here -->
     {% with messages = get_flashed_messages(with_categories=true) %} {% if
     messages %}
@@ -46,50 +35,41 @@
     </div>
     {% endif %} {% endwith %}
 
+    <!-- Agent login form -->
     <div class="container mt-5">
       <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-4">
           <div class="card">
-            <div class="card-header">Send us a message</div>
+            <div class="card-header">Agent Login</div>
             <div class="card-body">
-              <form action="/message" method="post">
-                <!-- New input field for Customer ID -->
+              <form action="/login" method="post">
                 <div class="form-group">
-                  <label for="customer_id">Customer ID:</label>
+                  <label for="username">Username:</label>
                   <input
                     type="text"
                     class="form-control"
-                    name="customer_id"
-                    id="customer_id"
+                    name="username"
+                    id="username"
                     required
-                    placeholder="Enter Customer ID"
                   />
                 </div>
 
                 <div class="form-group">
-                  <textarea
+                  <label for="password">Password:</label>
+                  <input
+                    type="password"
                     class="form-control"
-                    name="message"
-                    rows="5"
+                    name="password"
+                    id="password"
                     required
-                    placeholder="Your message"
-                  ></textarea>
+                  />
                 </div>
-                <button type="submit" class="btn btn-primary">Send</button>
+                <button type="submit" class="btn btn-primary">Login</button>
               </form>
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Script to auto-hide the flash message -->
-    <script>
-      $(document).ready(function () {
-        setTimeout(function () {
-          $(".alert").alert("close");
-        }, 5000); // 5 seconds
-      });
-    </script>
   </body>
 </html>
