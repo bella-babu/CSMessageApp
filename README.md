@@ -7,33 +7,62 @@ A web-based customer service messaging application to streamline and manage cust
 CSMessageApp provides a platform for customers to send messages or inquiries. Agents can log in to the portal, view these messages, and reply to them. The application ensures streamlined communication and efficient handling of customer inquiries.
 
 ## Features
+- **Customer Portal**:
+  - Customers can send messages to agents.
+  - Customers can search by their ID to see replies.
 
-- **Customer Portal**: Customers can send their inquiries or messages.
-- **Agent Portal**: Agents can view customer messages and respond. Multiple agents can log in simultaneously.
-- **Bootstrap Integration**: Provides a clean and responsive design.
-- **Database**: Stores customer messages and agent replies.
-- **User Authentication** (upcoming): Ensures that only authorized agents can access the portal.
+- **Agent Portal**:
+  - Agents can login to view customer messages.
+  - Agents can reply to customer messages.
+  - Display of unread messages with distinct visual indication.
+  - Agent registration feature.
+  - Multiple agents can log in simultaneously.
 
-## Setup & Installation
+- **Database**:
+  - Stores customer messages and agent replies.
+  - Supports agent registration and authentication.
 
-1. **Clone the repository**:
+- **Bootstrap Integration**:
+   - Provides a clean and responsive design.
+
+
+## Getting Started
+
+### Prerequisites
+
+- Python
+- Flask
+- SQLite
+
+### Setup & Installation
+
+1. Clone the repository:
+   \```
    git clone https://github.com/bella-babu/CSMessageApp.git
+   \```
 
-2. **Navigate to the directory**:
+2. Navigate to the project directory:
+   \```
    cd CSMessageApp
+   \```
 
-3. **Install required Python packages**:
+3. Install the required Python packages:
+   \```
    pip install -r requirements.txt
+   \```
 
-4. **Run the application**:
+4. Run the application:
+   \```
    python app.py
+   \```
 
-5. Open a web browser and navigate to `http://localhost:5000` to access the application.
+5. The application should now be running at `http://127.0.0.1:5000/`.
 
 ## Usage
 
-1. **Customer Portal**: Navigate to the main page (`http://localhost:5000`). Customers can enter their message and click "Send".
-2. **Agent Portal**: Navigate to the agent portal (`http://localhost:5000/agent_portal`). Agents can view customer messages and reply to them.
+1. As a customer, navigate to the homepage to send a message or search for a reply using your ID.
+2. As an agent, navigate to `/agentlogin` to access the agent portal. If it's your first time, register an account and then log in.
+
 
 ## Future Enhancements
 
@@ -42,10 +71,5 @@ CSMessageApp provides a platform for customers to send messages or inquiries. Ag
 - Add search and filtering options for agents to manage messages more efficiently.
 - Incorporate a more advanced authentication mechanism.
 
-## Contribution
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-## License
-
-[MIT](https://choosealicense.com/licenses/mit/)
+## Demo
+- Link:
