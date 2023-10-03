@@ -18,7 +18,7 @@ def setup_database():
         # Create the message_assignments table
         c.execute('''
         CREATE TABLE IF NOT EXISTS message_assignments 
-            (id INTEGER PRIMARY KEY, message_id INTEGER, agent_id INTEGER, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            (id INTEGER PRIMARY KEY, message_id INTEGER , agent_id INTEGER, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (message_id) REFERENCES customer_messages (id),
             FOREIGN KEY (agent_id) REFERENCES agents (id))
         ''')
@@ -50,10 +50,7 @@ def divide_replies_among_agents():
         agent_ids = [item[0] for item in c.fetchall()]
 
         # Fetch all replied messages that aren't yet assigned
-       # c.execute('''
-        #    SELECT id FROM customer_messages WHERE id IN (SELECT message_id FROM replies) 
-         #   AND id NOT IN (SELECT message_id FROM message_assignments)
-        #''')
+        c.execute('''SELECT id FROM customer_messages WHERE id IN (SELECT message_id FROM replies) AND id NOT IN (SELECT message_id FROM message_assignments)''')
         c.execute('''
             SELECT id FROM customer_messages WHERE id NOT IN (SELECT message_id FROM message_assignments)
         ''')

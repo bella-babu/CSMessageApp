@@ -63,17 +63,17 @@
                 </thead>
                 <tbody>
                   {% for msg in messages %}
-                  <tr class="{{ 'table-danger' if not msg.replied else '' }}">
-                    <td>{{ msg.id }}</td>
+                  <tr class="{{ 'table-danger' if not msg[3] else '' }}">
+                    <td>{{ msg[0] }}</td>
                     <!-- Displaying the User ID -->
-                    <td>{{ msg.message }}</td>
+                    <td>{{ msg[1] }}</td>
                     <!-- Displaying the Message Body -->
                     <td>
                       <form action="/reply" method="post">
                         <input
                           type="hidden"
                           name="message_id"
-                          value="{{ msg.id }}"
+                          value="{{ msg[0] }}"
                         />
                         <textarea
                           class="form-control mb-2"

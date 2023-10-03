@@ -15,9 +15,9 @@ def init_db():
         c.execute('''CREATE TABLE IF NOT EXISTS customer_messages
                      (id INTEGER PRIMARY KEY,timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, message TEXT, replied BOOLEAN DEFAULT FALSE)''')
         c.execute('''CREATE TABLE IF NOT EXISTS replies
-                     (id INTEGER PRIMARY KEY, message_id INTEGER, reply TEXT)''')
+                     (id INTEGER PRIMARY KEY, message_id INTEGER , reply TEXT)''')
         c.execute('''CREATE TABLE IF NOT EXISTS agents (id INTEGER PRIMARY KEY,username TEXT UNIQUE NOT NULL,password TEXT NOT NULL )''')
-        c.execute('''CREATE TABLE IF NOT EXISTS message_assignments (id INTEGER PRIMARY KEY, message_id INTEGER, agent_id INTEGER, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY (message_id) REFERENCES customer_messages (id),FOREIGN KEY (agent_id) REFERENCES agents (id))''')
+        c.execute('''CREATE TABLE IF NOT EXISTS message_assignments (id INTEGER PRIMARY KEY, message_id INTEGER , agent_id INTEGER, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY (message_id) REFERENCES customer_messages (id),FOREIGN KEY (agent_id) REFERENCES agents (id))''')
 
 @app.route('/')
 def index():
@@ -32,7 +32,7 @@ def send_message():
         c.execute('INSERT INTO customer_messages (id,message) VALUES (?,?)', (customer_id,message,))
         flash('Message sent successfully!')
     return redirect(url_for('index'))
-    #return "Message sent!", 200
+
 
 @app.route('/search', methods=['POST'])
 def search():
@@ -70,28 +70,6 @@ def agentlogin():
         flash('Invalid username or password!')
 
     return render_template('agentlogin.html')
-'''
-@app.route('/agentlogin', methods=['GET', 'POST'])
-def agentlogin():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password').encode('utf-8')
-
-        # Validate with the database and start the session
-        with sqlite3.connect('messages.db') as conn:
-            c = conn.cursor()
-            c.execute('SELECT password FROM agents WHERE username = ?', (username,))
-            hashed_pw = c.fetchone()
-
-            if hashed_pw and bcrypt.checkpw(password, hashed_pw[0]):
-                session['logged_in'] = True
-                return redirect(url_for('agent_portal'))
-
-        flash('Invalid username or password!')
-
-    return render_template('agentlogin.html')
-    #return render_template('agents_portal.html')
-    '''
 
 @app.route('/agentregister', methods=['GET', 'POST'])
 def register():
@@ -121,27 +99,7 @@ def agent_portal():
 
     agent_id = session['user_id']
 
-    # Fetch all messages assigned to this agent
-    with sqlite3.connect('messages.db') as conn:
-        c = conn.cursor()
-        c.execute('''
-            SELECT c.id, c.message, c.timestamp 
-            FROM customer_messages c 
-            INNER JOIN message_assignments a ON c.id = a.message_id 
-            WHERE a.agent_id = ? 
-            ORDER BY c.timestamp DESC''', (agent_id,))
-        messages = c.fetchall()
-
-    return render_template('agents_portal.html', messages=messages)
-'''
-@app.route('/agent_portal')
-def agent_portal():
-    # Check if the agent is logged in
-    if not session.get('logged_in'):
-        flash('Please login first!')
-        return redirect(url_for('agentlogin'))
-
-    agent_id = session['user_id']
+    print("Agent ID: ", agent_id) # For debugging purposes
 
     # Assign unassigned messages to this agent
     with sqlite3.connect('messages.db') as conn:
@@ -160,24 +118,18 @@ def agent_portal():
     # Fetch all messages assigned to this agent
     with sqlite3.connect('messages.db') as conn:
         c = conn.cursor()
-        c.execute('SELECT c.id, c.message, c.timestamp FROM customer_messages c LEFT JOIN message_assignments a ON c.id = a.message_id WHERE c.id IN (SELECT message_id FROM message_assignments WHERE agent_id = ?) ORDER BY c.timestamp DESC', (agent_id,))
+        c.execute('''
+            SELECT c.id, c.message, c.timestamp ,c.replied
+            FROM customer_messages c 
+            INNER JOIN message_assignments a ON c.id = a.message_id 
+            WHERE a.agent_id = ? 
+            ORDER BY c.timestamp DESC''', (agent_id,))
         messages = c.fetchall()
+        
+    print("Fetched Messages: ", messages) # For debugging purposes
 
     return render_template('agents_portal.html', messages=messages)
-'''
-'''
-@app.route('/agent')
-def agent_portal():
-    if not session.get('logged_in'):
-        flash('Please login first!')
-        return redirect(url_for('agentlogin'))
-    
-    with sqlite3.connect('messages.db') as conn:
-        c = conn.cursor()
-        c.row_factory = sqlite3.Row
-        messages = c.execute('SELECT * FROM customer_messages ORDER BY timestamp ASC').fetchall()
-    return render_template("agents_portal.html", messages=messages)
-'''
+
 @app.route('/reply', methods=['POST'])
 def reply():
     if 'user_id' not in session:
@@ -196,7 +148,9 @@ def reply():
 
             if assigned_agent and assigned_agent[0] == agent_id:
                 # Update the status of the message to 'replied'
-                c.execute('UPDATE customer_messages SET status = ?, reply = ? WHERE id = ?', ('replied', reply_text, message_id))
+                c.execute('INSERT INTO replies (message_id, reply) VALUES (?, ?)', (message_id, reply_text))
+                c.execute('UPDATE customer_messages SET replied = TRUE WHERE id = ?', (message_id,))
+
                 # Remove the assignment
                 c.execute('DELETE FROM message_assignments WHERE message_id = ?', (message_id,))
                 conn.commit()
