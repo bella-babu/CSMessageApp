@@ -15,8 +15,9 @@ def init_db():
         c.execute('''CREATE TABLE IF NOT EXISTS customer_messages
                      (id INTEGER PRIMARY KEY,timestamp DATETIME DEFAULT CURRENT_TIMESTAMP, message TEXT, replied BOOLEAN DEFAULT FALSE)''')
         c.execute('''CREATE TABLE IF NOT EXISTS replies
-                     (id INTEGER PRIMARY KEY, message_id INTEGER, reply TEXT)''')
+                     (id INTEGER PRIMARY KEY, message_id INTEGER , reply TEXT)''')
         c.execute('''CREATE TABLE IF NOT EXISTS agents (id INTEGER PRIMARY KEY,username TEXT UNIQUE NOT NULL,password TEXT NOT NULL )''')
+        c.execute('''CREATE TABLE IF NOT EXISTS message_assignments (id INTEGER PRIMARY KEY, message_id INTEGER , agent_id INTEGER, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY (message_id) REFERENCES customer_messages (id),FOREIGN KEY (agent_id) REFERENCES agents (id))''')
 
 @app.route('/')
 def index():
@@ -31,7 +32,8 @@ def send_message():
         c.execute('INSERT INTO customer_messages (id,message) VALUES (?,?)', (customer_id,message,))
         flash('Message sent successfully!')
     return redirect(url_for('index'))
-    #return "Message sent!", 200
+
+
 @app.route('/search', methods=['POST'])
 def search():
     search_id = request.form.get('search_id')
@@ -48,7 +50,6 @@ def search():
     
     return redirect(url_for('index'))
 
-
 @app.route('/agentlogin', methods=['GET', 'POST'])
 def agentlogin():
     if request.method == 'POST':
@@ -58,11 +59,12 @@ def agentlogin():
         # Validate with the database and start the session
         with sqlite3.connect('messages.db') as conn:
             c = conn.cursor()
-            c.execute('SELECT password FROM agents WHERE username = ?', (username,))
-            hashed_pw = c.fetchone()
+            c.execute('SELECT id, password FROM agents WHERE username = ?', (username,))
+            agent = c.fetchone()
 
-            if hashed_pw and bcrypt.checkpw(password, hashed_pw[0]):
+            if agent and bcrypt.checkpw(password, agent[1]):
                 session['logged_in'] = True
+                session['user_id'] = agent[0]  # Storing agent ID in the session
                 return redirect(url_for('agent_portal'))
 
         flash('Invalid username or password!')
@@ -88,38 +90,82 @@ def register():
 
     return render_template('agentregister.html')
 
-
-
-@app.route('/agent')
+@app.route('/agent_portal')
 def agent_portal():
+    # Check if the agent is logged in
     if not session.get('logged_in'):
         flash('Please login first!')
         return redirect(url_for('agentlogin'))
-    
+
+    agent_id = session['user_id']
+
+    print("Agent ID: ", agent_id) # For debugging purposes
+
+    # Assign unassigned messages to this agent
     with sqlite3.connect('messages.db') as conn:
         c = conn.cursor()
-        c.row_factory = sqlite3.Row
-        messages = c.execute('SELECT * FROM customer_messages ORDER BY timestamp ASC').fetchall()
-    return render_template("agents_portal.html", messages=messages)
+        
+        # Fetch an unassigned message
+        c.execute('SELECT id FROM customer_messages WHERE id NOT IN (SELECT message_id FROM message_assignments) LIMIT 1')
+        message = c.fetchone()
+
+        # If an unassigned message exists, assign it to this agent
+        if message:
+            message_id = message[0]
+            c.execute('INSERT INTO message_assignments (message_id, agent_id, timestamp) VALUES (?, ?, datetime("now"))', (message_id, agent_id))
+            conn.commit()
+
+    # Fetch all messages assigned to this agent
+    with sqlite3.connect('messages.db') as conn:
+        c = conn.cursor()
+        c.execute('''
+            SELECT c.id, c.message, c.timestamp ,c.replied
+            FROM customer_messages c 
+            INNER JOIN message_assignments a ON c.id = a.message_id 
+            WHERE a.agent_id = ? 
+            ORDER BY c.timestamp DESC''', (agent_id,))
+        messages = c.fetchall()
+        
+    print("Fetched Messages: ", messages) # For debugging purposes
+
+    return render_template('agents_portal.html', messages=messages)
 
 @app.route('/reply', methods=['POST'])
 def reply():
-    message_id = request.form.get('message_id')
-    reply_text = request.form.get('reply')
-    with sqlite3.connect('messages.db') as conn:
-        c = conn.cursor()
-        c.execute('INSERT INTO replies (message_id, reply) VALUES (?, ?)', (message_id, reply_text))
-        c.execute('UPDATE customer_messages SET replied = TRUE WHERE id = ?', (message_id,))
-        flash('Reply sent successfully!')
-    return redirect(url_for('agent_portal'))
-    #return "Reply sent!", 200
+    if 'user_id' not in session:
+        return redirect(url_for('agentlogin'))
+
+    if request.method == 'POST':
+        message_id = request.form['message_id']
+        reply_text = request.form['reply']
+
+        # Check if the message is assigned to the logged-in agent
+        agent_id = session['user_id']
+        with sqlite3.connect('messages.db') as conn:
+            c = conn.cursor()
+            c.execute('SELECT agent_id FROM message_assignments WHERE message_id = ?', (message_id,))
+            assigned_agent = c.fetchone()
+
+            if assigned_agent and assigned_agent[0] == agent_id:
+                # Update the status of the message to 'replied'
+                c.execute('INSERT INTO replies (message_id, reply) VALUES (?, ?)', (message_id, reply_text))
+                c.execute('UPDATE customer_messages SET replied = TRUE WHERE id = ?', (message_id,))
+
+                # Remove the assignment
+                c.execute('DELETE FROM message_assignments WHERE message_id = ?', (message_id,))
+                conn.commit()
+                flash('Reply sent successfully!', 'success')
+            else:
+                flash('You are not assigned to this message!', 'danger')
+
+        return redirect(url_for('agent_portal'))
 
 @app.route('/logout')
 def logout():
-    # remove the username from the session if it's there
-    session.pop('username', None)
+    session.pop('logged_in', None)
+    session.pop('user_id', None)
     flash('You were logged out', 'info')
-    return redirect(url_for('agentlogin')) # redirect to login page after logging out
+    return redirect(url_for('agentlogin'))
 
 if __name__ == "__main__":
     init_db()
