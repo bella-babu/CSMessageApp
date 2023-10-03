@@ -62,6 +62,11 @@ CSMessageApp provides a platform for customers to send messages or inquiries. Ag
 
 6. The application should now be running at `http://127.0.0.1:5000/`.
 
+## DataBase Schema
+![image](https://github.com/bella-babu/CSMessageApp/assets/76433840/9127eaa6-ed5b-48c2-94f6-af0658757e32)
+![image](https://github.com/bella-babu/CSMessageApp/assets/76433840/5202eb33-6a73-490d-813f-6484b509a002)
+
+
 ## Usage
 
 1. As a customer, navigate to the homepage to send a message or search for a reply using your ID.
@@ -78,4 +83,4 @@ CSMessageApp provides a platform for customers to send messages or inquiries. Ag
 
 ## Demo
 
-- Link: [Demo Link (Yet to be provided)]
+- Link:[https://drive.google.com/drive/folders/12YN4Ecy0Bpo2U4f2YH6M5O9D78K-sRgX?usp=sharing)https://drive.google.com/drive/folders/12YN4Ecy0Bpo2U4f2YH6M5O9D78K-sRgX?usp=sharing]
